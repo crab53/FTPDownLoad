@@ -8,11 +8,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace FTPDownloader
 {
     class Program
     {
+        private static System.Timers.Timer aTimer;
+
         static void Main(string[] args)
         {
             if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Length > 1) return;
@@ -20,29 +23,61 @@ namespace FTPDownloader
             Console.Title = "XML Downloader";
             Console.WriteLine("###### XML Downloader Started ######");
 
-            while (true)
+            /* first download */
+            FTPServer server = new FTPServer();
+            timer = server.GetConfigTimer();
+            if (server.IsConnected())
             {
-                TaskRun();
+                server.Download();
             }
+
+            /* set timer */
+            SetTimer(timer);
+
+            System.Threading.Thread.Sleep(-1);
         }
 
-        private static void TaskRun()
+        private static void SetTimer(double timer)
         {
-            if ((DateTime.Now - lastTime).TotalHours >= timer)
-            {
-                lastTime = DateTime.Now;
-                FTPServer server = new FTPServer();
-                timer = server.GetConfigTimer();
-                if (server.IsConnected())
-                {
-                    server.Download();
-                }
-                Console.WriteLine("");
-            }
-            Thread.Sleep(5 * 60 * 1000);
+            // Create a timer with milisecond .
+            aTimer = new System.Timers.Timer(timer * 60 * 60 * 1000);
+
+            // Hook up the Elapsed event for the timer. 
+            aTimer.Elapsed += OnTimedEvent;
+            aTimer.AutoReset = true;
+            aTimer.Enabled = true;
         }
 
-        private static DateTime lastTime;
+        /* event timer */
+        private static void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+
+            FTPServer server = new FTPServer();
+
+            if (server.IsConnected())   /* check connect */
+            {
+                server.Download();      /* download */
+            }
+            Console.WriteLine("");
+        }
+
+        //private static void TaskRun()
+        //{
+        //    if ((DateTime.Now - lastTime).TotalHours >= timer)
+        //    {
+        //        lastTime = DateTime.Now;
+        //        FTPServer server = new FTPServer();
+        //        timer = server.GetConfigTimer();
+        //        if (server.IsConnected())
+        //        {
+        //            server.Download();
+        //        }
+        //        Console.WriteLine("");
+        //    }
+        //    Thread.Sleep(5 * 60 * 1000);
+        //}
+
+        //private static DateTime lastTime;
         private static double timer = 1.0;
     }
 }
