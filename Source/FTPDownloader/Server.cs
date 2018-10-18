@@ -13,8 +13,9 @@ namespace FTPDownloader
     {
         Config config;
 
-        public FTPServer()
+        public FTPServer() /* contructor */
         {
+            /* read config */
             ClientFunction.ShowMessage(string.Format("Call back FTP server at {0}", DateTime.Now.ToShortTimeString()), Constants.EMessage.INFO);
             string configPath = Path.Combine(Environment.CurrentDirectory, Constants.CONFIG_FILENAME);
             config = FileFunction.LoadJsonFile<Config>(configPath);
@@ -39,7 +40,7 @@ namespace FTPDownloader
                         // create an FTP client
                         FtpClient client = new FtpClient(config.FTPHost);
 
-                        // if you don't specify login credentials, we use the "anonymous" user account
+                        // create credentials
                         client.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
 
                         // begin connecting to the server
@@ -63,13 +64,13 @@ namespace FTPDownloader
                 // create an FTP client
                 FtpClient client = new FtpClient(config.FTPHost);
 
-                // if you don't specify login credentials, we use the "anonymous" user account
+                // create credentials
                 client.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
 
                 // begin connecting to the server
                 client.Connect();
 
-                // download the file again
+                // download the file
                 string localFilePath = Path.Combine(config.LocalFilePath, Path.GetFileName(config.FTPFilePath));
                 client.DownloadFile(localFilePath, config.FTPFilePath);
 

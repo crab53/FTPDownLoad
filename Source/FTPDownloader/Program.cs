@@ -25,7 +25,7 @@ namespace FTPDownloader
 
             /* first download */
             FTPServer server = new FTPServer();
-            timer = server.GetConfigTimer();
+            var timer = server.GetConfigTimer();
             if (server.IsConnected())
             {
                 server.Download();
@@ -60,24 +60,6 @@ namespace FTPDownloader
             }
             Console.WriteLine("");
         }
-
-        //private static void TaskRun()
-        //{
-        //    if ((DateTime.Now - lastTime).TotalHours >= timer)
-        //    {
-        //        lastTime = DateTime.Now;
-        //        FTPServer server = new FTPServer();
-        //        timer = server.GetConfigTimer();
-        //        if (server.IsConnected())
-        //        {
-        //            server.Download();
-        //        }
-        //        Console.WriteLine("");
-        //    }
-        //    Thread.Sleep(5 * 60 * 1000);
-        //}
-
-        //private static DateTime lastTime;
-        private static double timer = 1.0;
+        
     }
 }
