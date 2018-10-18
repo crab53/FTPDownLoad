@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentFTP;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,11 +36,15 @@ namespace FTPDownloader
                 {
                     try
                     {
-                        FtpWebRequest request = (FtpWebRequest)WebRequest.Create(config.FTPFilePath);
-                        request.Method = WebRequestMethods.Ftp.DownloadFile;
-                        request.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
-                        FtpWebResponse response = (FtpWebResponse)request.GetResponse();
-                        Stream responseStream = response.GetResponseStream();
+                        // create an FTP client
+                        FtpClient client = new FtpClient(config.FTPHost);
+
+                        // if you don't specify login credentials, we use the "anonymous" user account
+                        client.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
+
+                        // begin connecting to the server
+                        client.Connect();
+
                         ClientFunction.ShowMessage("Checked connect to FTP.", Constants.EMessage.INFO);
                         return true;
                     }
@@ -55,39 +60,28 @@ namespace FTPDownloader
         {
             try
             {
-                FtpWebRequest request = (FtpWebRequest)WebRequest.Create(config.FTPFilePath);
-                request.Method = WebRequestMethods.Ftp.DownloadFile;
-                request.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
+                // create an FTP client
+                FtpClient client = new FtpClient(config.FTPHost);
 
-                FtpWebResponse response = (FtpWebResponse)request.GetResponse();
-                Stream responseStream = response.GetResponseStream();
-                StreamReader reader = new StreamReader(responseStream);
+                // if you don't specify login credentials, we use the "anonymous" user account
+                client.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
+
+                // begin connecting to the server
+                client.Connect();
+
+                // download the file again
                 string localFilePath = Path.Combine(config.LocalFilePath, Path.GetFileName(config.FTPFilePath));
-                File.WriteAllText(localFilePath, reader.ReadToEnd());
+                client.DownloadFile(localFilePath, config.FTPFilePath);
 
-                reader.Close();
-                response.Close();
                 ClientFunction.ShowMessage("Download successful!", Constants.EMessage.SUCCESS);
             }
             catch (Exception ex) { ClientFunction.ShowMessage("Unable to download file.", Constants.EMessage.ERROR); }
-        }
-
-        private FtpWebRequest CreateFtpWebRequest(string ftpFilePath, string ftpUser, string ftpPassword, bool keepAlive = false)
-        {
-            FtpWebRequest request = (FtpWebRequest)WebRequest.Create(new Uri(ftpFilePath));
-            request.Proxy = null;
-            request.UsePassive = true;
-            request.UseBinary = true;
-            request.KeepAlive = keepAlive;
-
-            request.Credentials = new NetworkCredential(ftpUser, ftpPassword);
-
-            return request;
         }
     }
 
     public class Config
     {
+        public string FTPHost { get; set; }
         public string FTPFilePath { get; set; }
         public string FTPUser { get; set; }
         public string FTPPassword { get; set; }
@@ -96,6 +90,7 @@ namespace FTPDownloader
 
         public Config()
         {
+            FTPHost = "";
             FTPFilePath = "";
             FTPUser = "";
             FTPPassword = "";

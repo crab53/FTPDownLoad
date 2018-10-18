@@ -1,7 +1,8 @@
 {
-  "FTPFilePath": "ftp://ist.freeddns.org/nLan/Config.xml",
+  "FTPHost": "ist.freeddns.org",
+  "FTPFilePath": "/nLan/Config.xml",
   "FTPUser": "FtpUser",
   "FTPPassword": "UF@2016##",
-  "LocalFilePath": "E:\\",
-  "Timer": 0.05
+  "LocalFilePath": "D:\\",
+  "Timer": 1.0
 }
