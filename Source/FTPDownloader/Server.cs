@@ -90,8 +90,8 @@ namespace FTPDownloader
                             try
                             {
                                 // connect to shared folder
-                                // get domain by go to cmd and enter whoami to return domain/username
-                                using (Impersonator.ImpersonateUser(config.SharedNetworkUser, config.SharedNetworkDomain, config.SharedNetworkPassword))
+                                Uri uri = new Uri(config.SharedNetworkDirectory);
+                                using (Impersonator.ImpersonateUser(config.SharedNetworkUser, uri.Host, config.SharedNetworkPassword))
                                 {
                                     File.Copy(localFilePath, Path.Combine(@config.SharedNetworkDirectory, fileName));
                                 }
@@ -120,7 +120,6 @@ namespace FTPDownloader
         public string FTPPassword { get; set; }
         public string LocalFilePath { get; set; }
         public string SharedNetworkDirectory { get; set; }
-        public string SharedNetworkDomain { get; set; }
         public string SharedNetworkUser { get; set; }
         public string SharedNetworkPassword { get; set; }
         public double Timer { get; set; }
@@ -134,7 +133,6 @@ namespace FTPDownloader
             FTPPassword = "";
             LocalFilePath = "";
             SharedNetworkDirectory = "";
-            SharedNetworkDomain = "";
             SharedNetworkUser = "";
             SharedNetworkPassword = "";
             Timer = 1.0;

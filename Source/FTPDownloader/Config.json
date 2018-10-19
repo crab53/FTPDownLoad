@@ -5,9 +5,8 @@
   "FTPUser": "FtpUser", /* ftp user */
   "FTPPassword": "UF@2016##", /* ftp pass */
   /* download directory */
-  "LocalFilePath": "E:\\", /* local path */
+  "LocalFilePath": "D:\\", /* local path */
   "SharedNetworkDirectory": "\\\\Server\\Shared", /* share directory */
-  "SharedNetworkDomain": "domain", /* share domain */
   "SharedNetworkUser": "user", /* share directory user */
   "SharedNetworkPassword": "password", /* share directory pass */
   "Timer": 0.05 /* timer */
