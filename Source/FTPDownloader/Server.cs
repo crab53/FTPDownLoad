@@ -81,7 +81,7 @@ namespace FTPDownloader
                         {
                             // upload a file and retry 3 times before giving up
                             client.RetryAttempts = 3;
-                            client.UploadFile(localFilePath, config.FTPMoveFileDirectory, FtpExists.Overwrite, true, FtpVerify.Retry);
+                            client.UploadFile(localFilePath, Path.Combine(config.FTPMoveFileDirectory, fileName), FtpExists.Overwrite, true, FtpVerify.Retry);
 
                             // delete current file
                             client.DeleteFile(config.FTPFilePath);
@@ -102,7 +102,7 @@ namespace FTPDownloader
 
                                     // copy local file to shared network folder
                                     string sharedNetworkFilePath = Path.Combine(config.SharedNetworkDirectory, fileName);
-                                    File.Copy(localFilePath, sharedNetworkFilePath, true);
+                                    File.Copy(localFilePath, Path.Combine(config.SharedNetworkDirectory, fileName), true);
 
                                     context.Undo();
                                 }
