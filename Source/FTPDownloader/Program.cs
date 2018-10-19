@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 
 namespace FTPDownloader
 {
-    class Program
+    internal class Program
     {
         private static System.Timers.Timer aTimer;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Length > 1) return;
 
@@ -42,16 +36,16 @@ namespace FTPDownloader
             // Create a timer with milisecond .
             aTimer = new System.Timers.Timer(timer * 60 * 60 * 1000);
 
-            // Hook up the Elapsed event for the timer. 
+            // Hook up the Elapsed event for the timer.
             aTimer.Elapsed += OnTimedEvent;
             aTimer.AutoReset = true;
             aTimer.Enabled = true;
         }
 
         /* event timer */
+
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
-
             FTPServer server = new FTPServer();
 
             if (server.IsConnected())   /* check connect */
@@ -60,6 +54,5 @@ namespace FTPDownloader
             }
             Console.WriteLine("");
         }
-        
     }
 }

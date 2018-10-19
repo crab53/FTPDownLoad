@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientFunction.cs" />
+    <Compile Include="Impersonator.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FileFunction.cs" />

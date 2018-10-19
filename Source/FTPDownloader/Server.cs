@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Security.Principal;
 
 namespace FTPDownloader
 {
@@ -79,37 +78,25 @@ namespace FTPDownloader
 
                         try
                         {
-                            // upload a file and retry 3 times before giving up
+                            //upload a file and retry 3 times before giving up
                             client.RetryAttempts = 3;
                             client.UploadFile(localFilePath, Path.Combine(config.FTPMoveFileDirectory, fileName), FtpExists.Overwrite, true, FtpVerify.Retry);
 
-                            // delete current file
+                            //delete current file
                             client.DeleteFile(config.FTPFilePath);
 
                             ClientFunction.ShowMessage("Move FTP file successful!", Constants.EMessage.SUCCESS);
 
-                            // check network directory exists
-                            if (Directory.Exists(config.SharedNetworkDirectory))
+                            try
                             {
-                                try
+                                // connect to shared folder
+                                // get domain by go to cmd and enter whoami to return domain/username
+                                using (Impersonator.ImpersonateUser(config.SharedNetworkUser, config.SharedNetworkDomain, config.SharedNetworkPassword))
                                 {
-                                    // create window principal
-                                    AppDomain.CurrentDomain.SetPrincipalPolicy(PrincipalPolicy.WindowsPrincipal);
-
-                                    // logon to shared folder
-                                    WindowsIdentity idnt = new WindowsIdentity(config.SharedNetworkUser, config.SharedNetworkPassword);
-                                    WindowsImpersonationContext context = idnt.Impersonate();
-
-                                    // copy local file to shared network folder
-                                    string sharedNetworkFilePath = Path.Combine(config.SharedNetworkDirectory, fileName);
-                                    File.Copy(localFilePath, Path.Combine(config.SharedNetworkDirectory, fileName), true);
-
-                                    context.Undo();
+                                    File.Copy(localFilePath, Path.Combine(@config.SharedNetworkDirectory, fileName));
                                 }
-                                catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to shared network folder.", Constants.EMessage.ERROR); }
                             }
-                            else
-                                ClientFunction.ShowMessage(string.Format("Network directory not found. {0}", config.SharedNetworkDirectory), Constants.EMessage.ERROR);
+                            catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to shared network folder.", Constants.EMessage.ERROR); }
                         }
                         catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to FPT folder.", Constants.EMessage.ERROR); }
                     }
@@ -133,6 +120,7 @@ namespace FTPDownloader
         public string FTPPassword { get; set; }
         public string LocalFilePath { get; set; }
         public string SharedNetworkDirectory { get; set; }
+        public string SharedNetworkDomain { get; set; }
         public string SharedNetworkUser { get; set; }
         public string SharedNetworkPassword { get; set; }
         public double Timer { get; set; }
@@ -146,6 +134,7 @@ namespace FTPDownloader
             FTPPassword = "";
             LocalFilePath = "";
             SharedNetworkDirectory = "";
+            SharedNetworkDomain = "";
             SharedNetworkUser = "";
             SharedNetworkPassword = "";
             Timer = 1.0;
