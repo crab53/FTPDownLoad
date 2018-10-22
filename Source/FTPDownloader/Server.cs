@@ -15,8 +15,12 @@ namespace FTPDownloader
             ClientFunction.ShowMessage(string.Format("Call back FTP server at {0}", DateTime.Now.ToShortTimeString()), Constants.EMessage.INFO);
             string configPath = Path.Combine(Environment.CurrentDirectory, Constants.CONFIG_FILENAME);
             config = FileFunction.LoadJsonFile<Config>(configPath);
+
+            /* config error */
             if (config == null)
                 ClientFunction.ShowMessage("Unable to read config file.", Constants.EMessage.ERROR);
+
+            /* config success */
             ClientFunction.ShowMessage("Readed config file.", Constants.EMessage.INFO);
         }
 
@@ -25,6 +29,7 @@ namespace FTPDownloader
             return this.config?.Timer ?? 1.0;
         }
 
+        /* check connect */
         public bool IsConnected()
         {
             if (config != null)
@@ -53,6 +58,7 @@ namespace FTPDownloader
             return false;
         }
 
+        /* download, move file to another path, copy file to share network */
         public void Download()
         {
             try
@@ -78,8 +84,8 @@ namespace FTPDownloader
 
                         try
                         {
-                            //upload a file and retry 3 times before giving up
-                            client.RetryAttempts = 3;
+                            //upload a file to another path on ftp server 
+                            client.RetryAttempts = 3; //and retry 3 times before giving up
                             client.UploadFile(localFilePath, Path.Combine(config.FTPMoveFileDirectory, fileName), FtpExists.Overwrite, true, FtpVerify.Retry);
 
                             //delete current file
@@ -93,6 +99,7 @@ namespace FTPDownloader
                                 Uri uri = new Uri(config.SharedNetworkDirectory);
                                 using (Impersonator.ImpersonateUser(config.SharedNetworkUser, uri.Host, config.SharedNetworkPassword))
                                 {
+                                    /* copy-past to share folder */
                                     File.Copy(localFilePath, Path.Combine(@config.SharedNetworkDirectory, fileName));
                                 }
                             }
