@@ -1,7 +1,7 @@
 {
   "FTPHost": "ist.freeddns.org",          /* host ftp */
-  "FTPFilePath": "/nLan/Config.xml",      /* host path */
-  "FTPMoveFileDirectory": "/nLan/Test/",  /* host move path */
+  "FTPFilePath": "/nLan/Test/",      /* host path */
+  "FTPMoveFileDirectory": "/nLan/TestMove/",  /* host move path */
   "FTPUser": "FtpUser",                   /* ftp user */
   "FTPPassword": "UF@2016##",             /* ftp pass */
   /* download directory */
@@ -9,5 +9,5 @@
   "SharedNetworkDirectory": "\\\\Server\\Shared", /* share directory */
   "SharedNetworkUser": "user",            /* share directory user */
   "SharedNetworkPassword": "password",    /* share directory pass */
-  "Timer": 0.05                           /* timer */
+  "Timer": 1                           /* timer */
 }

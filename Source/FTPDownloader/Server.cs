@@ -1,5 +1,6 @@
 ﻿using FluentFTP;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -8,9 +9,14 @@ namespace FTPDownloader
     public class FTPServer
     {
         private Config config;
+        private bool isDownloaded;
+        private List<string> localFileNames;
 
         public FTPServer() /* contructor */
         {
+            isDownloaded = false;
+            localFileNames = new List<string>();
+
             /* read config */
             ClientFunction.ShowMessage(string.Format("Call back FTP server at {0}", DateTime.Now.ToShortTimeString()), Constants.EMessage.INFO);
             string configPath = Path.Combine(Environment.CurrentDirectory, Constants.CONFIG_FILENAME);
@@ -39,15 +45,18 @@ namespace FTPDownloader
                     try
                     {
                         // create an FTP client
-                        FtpClient client = new FtpClient(config.FTPHost);
+                        using (FtpClient client = new FtpClient(config.FTPHost))
+                        {
+                            // create credentials
+                            client.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
 
-                        // create credentials
-                        client.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
+                            // begin connecting to the server
+                            client.Connect();
 
-                        // begin connecting to the server
-                        client.Connect();
+                            ClientFunction.ShowMessage("Checked connect to FTP.", Constants.EMessage.INFO);
 
-                        ClientFunction.ShowMessage("Checked connect to FTP.", Constants.EMessage.INFO);
+                            client.Disconnect();
+                        }
                         return true;
                     }
                     catch (Exception ex) { }
@@ -72,40 +81,24 @@ namespace FTPDownloader
                     // begin connecting to FTP server
                     client.Connect();
 
-                    // check if a file exists
-                    if (client.FileExists(config.FTPFilePath))
+                    // check if a directory exists
+                    if (client.DirectoryExists(config.FTPFilePath))
                     {
-                        // download the file
-                        string fileName = Path.GetFileName(config.FTPFilePath);
-                        string localFilePath = Path.Combine(config.LocalFilePath, fileName);
-                        client.DownloadFile(localFilePath, config.FTPFilePath);
-
-                        ClientFunction.ShowMessage("Download successful!", Constants.EMessage.SUCCESS);
-
-                        try
+                        // get all file in directory
+                        foreach (FtpListItem item in client.GetListing(config.FTPFilePath))
                         {
-                            //upload a file to another path on ftp server 
-                            client.RetryAttempts = 3; //and retry 3 times before giving up
-                            client.UploadFile(localFilePath, Path.Combine(config.FTPMoveFileDirectory, fileName), FtpExists.Overwrite, true, FtpVerify.Retry);
-
-                            //delete current file
-                            client.DeleteFile(config.FTPFilePath);
-
-                            ClientFunction.ShowMessage("Move FTP file successful!", Constants.EMessage.SUCCESS);
-
-                            try
+                            // check if file is xml file
+                            if (item.Type == FtpFileSystemObjectType.File && Path.GetExtension(item.Name).ToLower() == ".xml")
                             {
-                                // connect to shared folder
-                                Uri uri = new Uri(config.SharedNetworkDirectory);
-                                using (Impersonator.ImpersonateUser(config.SharedNetworkUser, uri.Host, config.SharedNetworkPassword))
-                                {
-                                    /* copy-past to share folder */
-                                    File.Copy(localFilePath, Path.Combine(@config.SharedNetworkDirectory, fileName));
-                                }
+                                // download the file
+                                string localFilePath = Path.Combine(config.LocalFilePath, item.Name);
+                                client.DownloadFile(localFilePath, item.FullName);
+                                localFileNames.Add(localFilePath);
                             }
-                            catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to shared network folder.", Constants.EMessage.ERROR); }
                         }
-                        catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to FPT folder.", Constants.EMessage.ERROR); }
+
+                        isDownloaded = true;
+                        ClientFunction.ShowMessage("Download successful!", Constants.EMessage.SUCCESS);
                     }
                     else
                         ClientFunction.ShowMessage(string.Format("File not found. {0}", config.FTPFilePath), Constants.EMessage.ERROR);
@@ -115,6 +108,60 @@ namespace FTPDownloader
                 }
             }
             catch (Exception ex) { ClientFunction.ShowMessage("Unable to download file.", Constants.EMessage.ERROR); }
+        }
+
+        public void MoveFTPFile()
+        {
+            try
+            {
+                if (isDownloaded)
+                {
+                    using (FtpClient client = new FtpClient(config.FTPHost))
+                    {
+                        // create credentials
+                        client.Credentials = new NetworkCredential(config.FTPUser, config.FTPPassword);
+
+                        // begin connecting to FTP server
+                        client.Connect();
+
+                        foreach (string fileFullName in localFileNames)
+                        {
+                            // get file name form local file path
+                            string fileName = Path.GetFileName(fileFullName);
+
+                            //upload a file to another path on ftp server 
+                            client.RetryAttempts = 3; //and retry 3 times before giving up
+                            client.UploadFile(fileFullName, Path.Combine(config.FTPMoveFileDirectory, fileName), FtpExists.Overwrite, true, FtpVerify.Retry);
+
+                            //delete current file
+                            client.DeleteFile(Path.Combine(config.FTPFilePath, fileName));
+                        }
+
+                        ClientFunction.ShowMessage("Move FTP file successful!", Constants.EMessage.SUCCESS);
+
+                        client.Disconnect();
+                    }
+                }
+            }
+            catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to FPT folder.", Constants.EMessage.ERROR); }
+        }
+
+        public void CopyLocalFile()
+        {
+            try
+            {
+                // connect to shared folder
+                Uri uri = new Uri(config.SharedNetworkDirectory);
+                using (Impersonator.ImpersonateUser(config.SharedNetworkUser, uri.Host, config.SharedNetworkPassword))
+                {
+                    foreach (string fileFullName in localFileNames)
+                    {
+                        /* copy-past to share folder */
+                        File.Copy(fileFullName, Path.Combine(@config.SharedNetworkDirectory, Path.GetFileName(fileFullName)));
+                    }
+                }
+            }
+            catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to shared network folder.", Constants.EMessage.ERROR); }
         }
     }
 

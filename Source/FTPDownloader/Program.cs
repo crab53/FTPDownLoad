@@ -23,6 +23,8 @@ namespace FTPDownloader
             if (server.IsConnected())
             {
                 server.Download();
+                server.MoveFTPFile();
+                server.CopyLocalFile();
             }
 
             /* set timer */
@@ -51,6 +53,8 @@ namespace FTPDownloader
             if (server.IsConnected())   /* check connect */
             {
                 server.Download();      /* download */
+                server.MoveFTPFile();   /* move ftp file */
+                server.CopyLocalFile(); /* copy local file to shared folder*/
             }
             Console.WriteLine("");
         }
