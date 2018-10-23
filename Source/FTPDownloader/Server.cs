@@ -150,18 +150,23 @@ namespace FTPDownloader
         {
             try
             {
-                // connect to shared folder
-                Uri uri = new Uri(config.SharedNetworkDirectory);
-                using (Impersonator.ImpersonateUser(config.SharedNetworkUser, uri.Host, config.SharedNetworkPassword))
+                if (isDownloaded)
                 {
-                    foreach (string fileFullName in localFileNames)
+                    // connect to shared folder
+                    Uri uri = new Uri(config.SharedNetworkDirectory);
+                    using (Impersonator.ImpersonateUser(config.SharedNetworkUser, uri.Host, config.SharedNetworkPassword))
                     {
-                        /* copy-past to share folder */
-                        File.Copy(fileFullName, Path.Combine(@config.SharedNetworkDirectory, Path.GetFileName(fileFullName)));
+                        foreach (string fileFullName in localFileNames)
+                        {
+                            /* copy-past to share folder */
+                            File.Copy(fileFullName, Path.Combine(@config.SharedNetworkDirectory, Path.GetFileName(fileFullName)), true);
+                        }
+
+                        ClientFunction.ShowMessage("Move file to network successful!", Constants.EMessage.SUCCESS);
                     }
                 }
             }
-            catch (Exception ex) { ClientFunction.ShowMessage("Unable to move a file to shared network folder.", Constants.EMessage.ERROR); }
+            catch (Exception ex) { ClientFunction.ShowMessage("Unable to move file to shared network folder.", Constants.EMessage.ERROR); }
         }
     }
 
